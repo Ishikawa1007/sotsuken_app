@@ -1,4 +1,4 @@
-package com.example.app411;
+package com.example.sotsuken_app;
 
 import org.junit.Test;
 

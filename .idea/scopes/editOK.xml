@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="editOK" pattern="file[sotsuken_app.app.main]:res/layout//*||file[sotsuken_app.app.main]:res/values//*||file[sotsuken_app.app.main]:res/drawable//*||file[sotsuken_app.app.main]:java//*||file[sotsuken_app.app.unitTest]:*/||file[sotsuken_app.app.androidTest]:*/||file[sotsuken_app.app*]:*//*" />
+</component>

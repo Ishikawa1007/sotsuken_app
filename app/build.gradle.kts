@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.app411"
+    namespace = "com.example.sotsuken_app"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
