@@ -46,15 +46,15 @@
 無連絡で触らないでください。理由も必ず説明しましょう。
 ### 対象
 
-app/proguard-rules.pro
-app/bin/default/main/AndroidManifest.xml
-app/bin/default/main/res/values/themes.xml
-app/bin/default/main/res/values-night/
-app/bin/default/main/res/xml/
-app/src/main/AndroidManifest.xml
-app/src/main/res/values/themes.xml
-app/src/main/res/values-night/
-app/src/main/res/xml/
+- app/proguard-rules.pro
+- app/bin/default/main/AndroidManifest.xml
+- app/bin/default/main/res/values/themes.xml
+- app/bin/default/main/res/values-night/
+- app/bin/default/main/res/xml/
+- app/src/main/AndroidManifest.xml
+- app/src/main/res/values/themes.xml
+- app/src/main/res/values-night/
+- app/src/main/res/xml/
 
 ---
 
@@ -64,22 +64,22 @@ app/src/main/res/xml/
 アプリの機能・UI・リソースを実装するための領域。
 
 ### 対象
-rule.md
-app/src/androidTest/
-app/src/res/editable.md
-app/src/res/drawable/ic_launcher_background.xml
-app/src/res/drawableic_launcher_foreground.xml
-app/src/res/layout/
-app/src/res/mipmap-anydpi-v26/
-app/src/res/mipmap-hdpi/
-app/src/res/mipmap-mdpi/
-app/src/res/mipmap-xhdpi/
-app/src/res/mipmap-xxhdpi/
-app/src/res/mipmap-xxxhdpi/
-app/src/res/values/colors.xml
-app/src/res/valuesstrings.xml
-app/src/test/
-src/
+- rule.md
+- app/src/androidTest/
+- app/src/res/editable.md
+- app/src/res/drawable/ic_launcher_background.xml
+- app/src/res/drawableic_launcher_foreground.xml
+- app/src/res/layout/
+- app/src/res/mipmap-anydpi-v26/
+- app/src/res/mipmap-hdpi/
+- app/src/res/mipmap-mdpi/
+- app/src/res/mipmap-xhdpi/
+- app/src/res/mipmap-xxhdpi/
+- app/src/res/mipmap-xxxhdpi/
+- app/src/res/values/colors.xml
+- app/src/res/valuesstrings.xml
+- app/src/test/
+- src/
 
 ---
 
