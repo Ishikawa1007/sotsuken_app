@@ -108,36 +108,36 @@
 |   rule.md   🟩  
 |   settings.gradle.kts   🟥  
 |   tree.txt   🟥  
-|
+|  
 +---.gradle   🟥  
 |   +---9.3.1   🟥  
 |   |   |   gc.properties   🟥  
-|   |   |
+|   |   |  
 |   |   +---checksums   🟥  
 |   |   |       checksums.lock   🟥  
 |   |   |       md5-checksums.bin   🟥  
 |   |   |       sha1-checksums.bin   🟥  
-|   |   |
+|   |   |  
 |   |   +---executionHistory   🟥  
 |   |   |       executionHistory.lock   🟥  
-|   |   |
+|   |   |  
 |   |   +---expanded   🟥  
 |   |   +---fileChanges   🟥  
 |   |   |       last-build.bin   🟥  
-|   |   |
+|   |   |  
 |   |   +---fileHashes   🟥  
 |   |   |       fileHashes.bin   🟥  
 |   |   |       fileHashes.lock   🟥  
-|   |   |
+|   |   |  
 |   |   \---vcsMetadata   🟥  
-|   |
+|   |  
 |   +---buildOutputCleanup   🟥  
 |   |       buildOutputCleanup.lock   🟥  
 |   |       cache.properties   🟥  
-|   |
+|   |  
 |   \---vcs-1   🟥  
 |           gc.properties   🟥  
-|
+|  
 +---.idea   🟥  
 |       .gitignore   🟥  
 |       .name   🟥  
@@ -150,12 +150,12 @@
 |       misc.xml   🟥  
 |       runConfigurations.xml   🟥  
 |       vcs.xml   🟥  
-|
+|  
 +---app
 |   |   .gitignore   🟥  
 |   |   build.gradle.kts   🟥  
 |   |   proguard-rules.pro   🟨  
-|   |
+|   |  
 |   +---bin   🟥  
 |   |   \---default   🟥  
 |   |       +---androidTest   🟥  
@@ -164,7 +164,7 @@
 |   |       |           \---example   🟥  
 |   |       |               \---app411   🟥  
 |   |       |                       ExampleInstrumentedTest.class   🟥  
-|   |       |
+|   |       |  
 |   |       +---main   🟥  
 |   |       |   |   AndroidManifest.xml   🟨  
 |   |       |   |
@@ -173,62 +173,62 @@
 |   |       |   |       \---example   🟥  
 |   |       |   |           \---app411   🟥  
 |   |       |   |                   MainActivity.class   🟥  
-|   |       |   |
+|   |       |   |  
 |   |       |   \---res   🟥  
 |   |       |       +---drawable   🟥  
 |   |       |       |       ic_launcher_background.xml   🟥  
 |   |       |       |       ic_launcher_foreground.xml   🟥  
-|   |       |       |
+|   |       |       |  
 |   |       |       +---layout   🟥  
 |   |       |       |       page1.xml   🟥  
 |   |       |       |       page2.xml   🟥  
 |   |       |       |       page3.xml   🟥  
 |   |       |       |       page4.xml   🟥  
 |   |       |       |       page5.xml   🟥  
-|   |       |       |
+|   |       |       |  
 |   |       |       +---mipmap-anydpi-v26   🟥  
 |   |       |       |       ic_launcher.xml   🟥  
 |   |       |       |       ic_launcher_round.xml   🟥  
-|   |       |       |
+|   |       |       |  
 |   |       |       +---mipmap-hdpi   🟥  
 |   |       |       |       ic_launcher.webp   🟥  
 |   |       |       |       ic_launcher_round.webp   🟥  
-|   |       |       |
+|   |       |       |  
 |   |       |       +---mipmap-mdpi   🟥  
 |   |       |       |       ic_launcher.webp   🟥  
 |   |       |       |       ic_launcher_round.webp   🟥  
-|   |       |       |
+|   |       |       |  
 |   |       |       +---mipmap-xhdpi   🟥  
 |   |       |       |       ic_launcher.webp   🟥  
 |   |       |       |       ic_launcher_round.webp   🟥  
-|   |       |       |
+|   |       |       |  
 |   |       |       +---mipmap-xxhdpi   🟥  
 |   |       |       |       ic_launcher.webp   🟥  
 |   |       |       |       ic_launcher_round.webp   🟥  
-|   |       |       |
+|   |       |       |  
 |   |       |       +---mipmap-xxxhdpi   🟥  
 |   |       |       |       ic_launcher.webp   🟥  
 |   |       |       |       ic_launcher_round.webp   🟥  
-|   |       |       |
+|   |       |       |  
 |   |       |       +---values   🟥  
 |   |       |       |       colors.xml   🟥  
 |   |       |       |       strings.xml   🟥  
 |   |       |       |       themes.xml   🟨  
-|   |       |       |
+|   |       |       |  
 |   |       |       +---values-night   🟥  
 |   |       |       |       themes.xml   🟨  
 |   |       |       |  
 |   |       |       \---xml   🟥  
 |   |       |               backup_rules.xml   🟨  
 |   |       |               data_extraction_rules.xml   🟨  
-|   |       |
+|   |       |  
 |   |       \---test   🟥  
 |   |           \---java   🟥  
 |   |               \---com   🟥  
 |   |                   \---example   🟥  
 |   |                       \---app411   🟥  
 |   |                               ExampleUnitTest.class   🟥  
-|
+|  
 |   \---src  
 |       +---androidTest  
 |       |   \---java  
@@ -237,7 +237,7 @@
 |       |               \---app411  
 |       |                       editable.md   🟩  
 |       |                       ExampleInstrumentedTest.java   🟩  
-|       |
+|       |  
 |       +---main  
 |       |   |   AndroidManifest.xml   🟨  
 |       |   |  
@@ -250,7 +250,7 @@
 |       |   |  
 |       |   \---res  
 |       |       |   editable.md   🟩  
-|       |       |
+|       |       |  
 |       |       +---drawable  
 |       |       |       ic_launcher_background.xml   🟩  
 |       |       |       ic_launcher_foreground.xml   🟩  
@@ -261,43 +261,43 @@
 |       |       |       page3.xml   🟩  
 |       |       |       page4.xml   🟩  
 |       |       |       page5.xml   🟩  
-|       |       |
+|       |       |  
 |       |       +---mipmap-anydpi-v26  
 |       |       |       ic_launcher.xml   🟩  
 |       |       |       ic_launcher_round.xml   🟩  
-|       |       |
+|       |       |  
 |       |       +---mipmap-hdpi  
 |       |       |       ic_launcher.webp   🟩  
 |       |       |       ic_launcher_round.webp   🟩  
-|       |       |
+|       |       |  
 |       |       +---mipmap-mdpi  
 |       |       |       ic_launcher.webp   🟩  
 |       |       |       ic_launcher_round.webp   🟩  
-|       |       |
+|       |       |  
 |       |       +---mipmap-xhdpi  
 |       |       |       ic_launcher.webp   🟩  
 |       |       |       ic_launcher_round.webp   🟩  
-|       |       |
+|       |       |  
 |       |       +---mipmap-xxhdpi  
 |       |       |       ic_launcher.webp   🟩  
 |       |       |       ic_launcher_round.webp   🟩  
-|       |       |
+|       |       |  
 |       |       +---mipmap-xxxhdpi  
 |       |       |       ic_launcher.webp   🟩  
 |       |       |       ic_launcher_round.webp   🟩  
-|       |       |
+|       |       |  
 |       |       +---values  
 |       |       |       colors.xml   🟩  
 |       |       |       strings.xml   🟩  
 |       |       |       themes.xml   🟨  
-|       |       |
+|       |       |  
 |       |       +---values-night
 |       |       |       themes.xml   🟨  
-|       |       |
+|       |       |  
 |       |       \---xml
 |       |               backup_rules.xml   🟨
 |       |               data_extraction_rules.xml   🟨  
-|       |
+|       |  
 |       \---test
 |           \---java
 |               \---com
@@ -305,13 +305,13 @@
 |                       \---app411
 |                               editable.md   🟩
 |                               ExampleUnitTest.java   🟩
-|
+|  
 +---gradle
 |   |   gradle-daemon-jvm.properties   🟥
 |   |   libs.versions.toml   🟥
-|   |
+|   |  
 |   \---wrapper
 |           gradle-wrapper.jar   🟥
 |           gradle-wrapper.properties   🟥
-|
+|  
 \---src   🟩
