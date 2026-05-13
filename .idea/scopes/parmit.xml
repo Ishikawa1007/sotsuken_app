@@ -1,3 +1,0 @@
-<component name="DependencyValidationManager">
-  <scope name="parmit" pattern="file[sotsuken_app.app.main]:AndroidManifest.xml||file[sotsuken_app.app.main]:res/values/themes.xml||file[sotsuken_app.app.main]:res/values/strings.xml" />
-</component>
