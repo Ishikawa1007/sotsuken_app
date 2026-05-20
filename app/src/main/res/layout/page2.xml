@@ -14,4 +14,9 @@
         android:layout_width="100dp"
         android:layout_height="80dp"
         android:text="すすむ" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 </LinearLayout>
