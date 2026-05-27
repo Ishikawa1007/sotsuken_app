@@ -27,7 +27,7 @@ public class Page4Fragment extends Fragment {
         });
 
         // page5 に進むボタン
-        Button btnToPage3 = view.findViewById(R.id.button42);
+        Button btnToPage5 = view.findViewById(R.id.button42);
         btnToPage5.setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
