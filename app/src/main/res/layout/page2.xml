@@ -4,13 +4,13 @@
     android:layout_height="match_parent">
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/button21"
         android:layout_width="100dp"
         android:layout_height="80dp"
         android:text="もどる" />
 
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/button22"
         android:layout_width="100dp"
         android:layout_height="80dp"
         android:text="すすむ" />

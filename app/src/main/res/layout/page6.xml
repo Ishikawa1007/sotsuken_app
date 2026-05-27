@@ -9,4 +9,12 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="けっか" />
+
+    <Button
+        android:id="@+id/button61"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="おわる" />
+
 </LinearLayout>
