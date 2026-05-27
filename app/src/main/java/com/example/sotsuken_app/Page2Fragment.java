@@ -27,14 +27,14 @@ public class Page2Fragment extends Fragment {
         });
 
         // page3 に進むボタン
-        /*Button btnToPage3 = view.findViewById(R.id.toPage3);
+        Button btnToPage3 = view.findViewById(R.id.button22);
         btnToPage3.setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.container, new Page3Fragment())
                     .addToBackStack(null)
                     .commit();
-        });*/
+        });
 
         return view;
     }
