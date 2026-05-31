@@ -19,7 +19,7 @@ public class HomeFragment extends Fragment {
         btn.setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.container, new page2Fragment())
+                    .replace(R.id.container, new Page2Fragment())
                     .addToBackStack(null)
                     .commit();
         });

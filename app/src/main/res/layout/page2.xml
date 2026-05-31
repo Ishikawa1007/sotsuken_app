@@ -1,22 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#F8F0F8">
 
+    <!-- 左上：もどるボタン -->
     <Button
         android:id="@+id/button21"
-        android:layout_width="100dp"
-        android:layout_height="80dp"
-        android:text="もどる" />
+        android:layout_width="120dp"
+        android:layout_height="60dp"
+        android:text="もどる"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp" />
 
+    <!-- 右上：すすむボタン -->
     <Button
         android:id="@+id/button22"
-        android:layout_width="100dp"
-        android:layout_height="80dp"
-        android:text="すすむ" />
+        android:layout_width="120dp"
+        android:layout_height="60dp"
+        android:text="すすむ"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginEnd="32dp"
+        android:layout_marginTop="32dp" />
 
-    <com.google.android.material.slider.Slider
+    <!-- スライダー左のテキスト -->
+    <TextView
+        android:id="@+id/textLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="じかん: n分"
+        android:textSize="20sp"
+        app:layout_constraintTop_toTopOf="@+id/slider"
+        app:layout_constraintBottom_toBottomOf="@+id/slider"
+        app:layout_constraintEnd_toStartOf="@+id/slider"
+        android:layout_marginEnd="16dp" />
+
+    <!-- 真ん中：スライダー -->
+    <SeekBar
         android:id="@+id/slider"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-</LinearLayout>
+        android:layout_width="400dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="0dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
