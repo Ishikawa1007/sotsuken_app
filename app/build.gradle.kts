@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.sotsuken_app"
+    namespace = "com.example.smarttyping"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
