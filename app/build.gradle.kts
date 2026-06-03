@@ -11,7 +11,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.app411"
+        // applicationId を更新しました：com.example.smarttyping
+        applicationId = "com.example.smarttyping"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
