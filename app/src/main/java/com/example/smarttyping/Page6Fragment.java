@@ -16,12 +16,12 @@ public class Page6Fragment extends Fragment {
         // page6.xml を読み込む
         View view = inflater.inflate(R.layout.page6, container, false);
 
-        // page4 に戻るボタン
-        Button btnToPage4 = view.findViewById(R.id.button61);
-        btnToPage4.setOnClickListener(v -> {
+        // page7 に進むボタン
+        Button btnToPage7 = view.findViewById(R.id.button61);
+        btnToPage7.setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.container, new Page1Fragment())
+                    .replace(R.id.container, new Page7Fragment())
                     .addToBackStack(null)
                     .commit();
         });
