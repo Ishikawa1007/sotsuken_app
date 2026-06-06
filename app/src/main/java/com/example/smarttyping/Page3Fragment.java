@@ -5,7 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import androidx.fragment.app.Fragment;
+
+import androidx.fragment.app.Fragment;  // ← Fragmentを使うために必須
 
 public class Page3Fragment extends Fragment {
 
@@ -17,6 +18,13 @@ public class Page3Fragment extends Fragment {
         Button btnBack = view.findViewById(R.id.button31);
         Button btnNext = view.findViewById(R.id.button32);
 
+        // Page2から送られてきたデータを取得
+        int minutesTmp = 1;  // デフォルト値
+        if (getArguments() != null) {
+            minutesTmp = getArguments().getInt("minutes", 1);
+        }
+        final int minutes = minutesTmp;  // ★ラムダで使うためにfinal化
+
         btnBack.setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
@@ -26,9 +34,14 @@ public class Page3Fragment extends Fragment {
         });
 
         btnNext.setOnClickListener(v -> {
+            Page4Fragment page4 = new Page4Fragment();
+            Bundle bundle = new Bundle();
+            bundle.putInt("minutes", minutes);  // ★ここで使える
+            page4.setArguments(bundle);
+
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.container, new Page4Fragment())
+                    .replace(R.id.container, page4)
                     .addToBackStack(null)
                     .commit();
         });

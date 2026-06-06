@@ -11,16 +11,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="けっか"
-        android:textSize="24sp"
+        android:textSize="16sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="8dp" />
 
     <!-- 結果テーブル -->
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:stretchColumns="1"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="8dp">
 
         <!-- 得点 -->
         <TableRow
@@ -34,7 +34,7 @@
                 android:layout_weight="1"
                 android:text="とくてん"
                 android:textSize="16sp"
-                android:padding="8dp" />
+                android:padding="4dp" />
 
             <TextView
                 android:id="@+id/textView6"
@@ -44,14 +44,14 @@
                 android:text="10"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:padding="8dp" />
+                android:padding="4dp" />
         </TableRow>
 
         <!-- ランク -->
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8dp">
+            android:padding="4dp">
 
             <TextView
                 android:layout_width="0dp"
@@ -59,7 +59,7 @@
                 android:layout_weight="1"
                 android:text="ランク"
                 android:textSize="16sp"
-                android:padding="8dp" />
+                android:padding="4dp" />
 
             <TextView
                 android:id="@+id/textView8"
@@ -69,7 +69,7 @@
                 android:text="A"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:padding="8dp" />
+                android:padding="4dp" />
         </TableRow>
 
         <!-- ことば-->
@@ -84,7 +84,7 @@
                 android:layout_weight="1"
                 android:text="ことば"
                 android:textSize="16sp"
-                android:padding="8dp" />
+                android:padding="4dp" />
 
             <TextView
                 android:id="@+id/textView10"
@@ -94,7 +94,7 @@
                 android:text="1 1もじ"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:padding="8dp" />
+                android:padding="4dp" />
         </TableRow>
 
         <!-- 時間 -->

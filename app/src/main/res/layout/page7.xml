@@ -13,14 +13,14 @@
         android:text="けっか"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="8dp" />
 
     <!-- 結果テーブル -->
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:stretchColumns="1"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="8dp">
 
         <!-- 正解数 -->
         <TableRow

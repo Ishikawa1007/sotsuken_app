@@ -12,6 +12,8 @@ import androidx.fragment.app.Fragment;
 
 public class Page2Fragment extends Fragment {
 
+    private int selectedMinutes = 1;  // スライダーの値を保存（1～5分）
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -31,9 +33,14 @@ public class Page2Fragment extends Fragment {
         // page3 に進むボタン
         Button btnToPage3 = view.findViewById(R.id.button22);
         btnToPage3.setOnClickListener(v -> {
+            Page3Fragment page3 = new Page3Fragment();
+            Bundle bundle = new Bundle();
+            bundle.putInt("minutes", selectedMinutes);
+            page3.setArguments(bundle);
+
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.container, new Page3Fragment())
+                    .replace(R.id.container, page3)
                     .addToBackStack(null)
                     .commit();
         });
@@ -54,6 +61,7 @@ public class Page2Fragment extends Fragment {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 // progress は 0～4、+1で 1～5 として表示
                 int minutes = progress + 1;
+                selectedMinutes = minutes;  // 値を保存
                 textLabel.setText("じかん: " + minutes + "分");
             }
 
