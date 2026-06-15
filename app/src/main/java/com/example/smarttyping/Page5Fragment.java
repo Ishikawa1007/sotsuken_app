@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -82,12 +83,14 @@ public class Page5Fragment extends Fragment {
     }
 
     private void startCamera() {
+        Log.d("SmartTyping", "startCamera() called");
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(requireContext());
 
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                Log.d("SmartTyping", "CameraProvider obtained");
 
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
@@ -96,8 +99,10 @@ public class Page5Fragment extends Fragment {
 
                 cameraProvider.unbindAll();
                 cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview);
+                Log.d("SmartTyping", "Camera bound to lifecycle");
 
             } catch (ExecutionException | InterruptedException e) {
+                Log.e("SmartTyping", "Camera start error: " + e.getMessage());
                 e.printStackTrace();
             }
         }, ContextCompat.getMainExecutor(requireContext()));
