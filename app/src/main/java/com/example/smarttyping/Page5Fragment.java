@@ -4,16 +4,14 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.Preview;
@@ -28,26 +26,14 @@ import java.util.concurrent.ExecutionException;
 
 public class Page5Fragment extends Fragment {
 
-    private static final String TAG = "SmartTyping_Page5";
-    private int countdownSeconds = 60;
+    private int countdownSeconds = 60;  // デフォルト値
     private Handler handler = new Handler();
     private boolean running = true;
     private PreviewView previewView;
-
-    // 権限リクエスト用のランチャー
-    private final ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    Log.d(TAG, "Permission granted");
-                    startCamera();
-                } else {
-                    Log.e(TAG, "Permission denied");
-                    Toast.makeText(requireContext(), "カメラ権限が必要です", Toast.LENGTH_SHORT).show();
-                }
-            });
+    private static final int CAMERA_PERMISSION_CODE = 101;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.page5, container, false);
 
@@ -65,11 +51,13 @@ public class Page5Fragment extends Fragment {
         // カウントダウン開始
         startCountdown(timerView);
 
-        // 権限チェックと起動
+        // カメラ権限のチェックと起動
         checkPermissionAndStartCamera();
 
         // 「やめる」ボタン
-        btnQuit.setOnClickListener(v -> stopTimerAndGoBack());
+        btnQuit.setOnClickListener(v -> {
+            stopTimerAndGoBack();
+        });
 
         return view;
     }
@@ -79,20 +67,30 @@ public class Page5Fragment extends Fragment {
                 == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else {
-            // 権限をリクエスト
-            requestPermissionLauncher.launch(Manifest.permission.CAMERA);
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == CAMERA_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startCamera();
+            } else {
+                Toast.makeText(requireContext(), "カメラ権限が必要です", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
     private void startCamera() {
-        Log.d(TAG, "startCamera() called");
+        Log.d("SmartTyping", "startCamera() called");
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(requireContext());
 
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                Log.d(TAG, "CameraProvider obtained");
+                Log.d("SmartTyping", "CameraProvider obtained");
 
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
@@ -101,10 +99,10 @@ public class Page5Fragment extends Fragment {
 
                 cameraProvider.unbindAll();
                 cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview);
-                Log.d(TAG, "Camera bound to lifecycle");
+                Log.d("SmartTyping", "Camera bound to lifecycle");
 
             } catch (ExecutionException | InterruptedException e) {
-                Log.e(TAG, "Camera start error: " + e.getMessage());
+                Log.e("SmartTyping", "Camera start error: " + e.getMessage());
                 e.printStackTrace();
             }
         }, ContextCompat.getMainExecutor(requireContext()));
