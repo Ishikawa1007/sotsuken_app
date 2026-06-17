@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.Preview;
@@ -25,14 +28,26 @@ import java.util.concurrent.ExecutionException;
 
 public class Page5Fragment extends Fragment {
 
-    private int countdownSeconds = 60;  // デフォルト値
+    private static final String TAG = "SmartTyping_Page5";
+    private int countdownSeconds = 60;
     private Handler handler = new Handler();
     private boolean running = true;
     private PreviewView previewView;
-    private static final int CAMERA_PERMISSION_CODE = 101;
+
+    // 権限リクエスト用のランチャー
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    Log.d(TAG, "Permission granted");
+                    startCamera();
+                } else {
+                    Log.e(TAG, "Permission denied");
+                    Toast.makeText(requireContext(), "カメラ権限が必要です", Toast.LENGTH_SHORT).show();
+                }
+            });
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.page5, container, false);
 
@@ -50,13 +65,11 @@ public class Page5Fragment extends Fragment {
         // カウントダウン開始
         startCountdown(timerView);
 
-        // カメラ権限のチェックと起動
+        // 権限チェックと起動
         checkPermissionAndStartCamera();
 
         // 「やめる」ボタン
-        btnQuit.setOnClickListener(v -> {
-            stopTimerAndGoBack();
-        });
+        btnQuit.setOnClickListener(v -> stopTimerAndGoBack());
 
         return view;
     }
@@ -66,28 +79,20 @@ public class Page5Fragment extends Fragment {
                 == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else {
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startCamera();
-            } else {
-                Toast.makeText(requireContext(), "カメラ権限が必要です", Toast.LENGTH_SHORT).show();
-            }
+            // 権限をリクエスト
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
     }
 
     private void startCamera() {
+        Log.d(TAG, "startCamera() called");
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(requireContext());
 
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                Log.d(TAG, "CameraProvider obtained");
 
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
@@ -96,8 +101,10 @@ public class Page5Fragment extends Fragment {
 
                 cameraProvider.unbindAll();
                 cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview);
+                Log.d(TAG, "Camera bound to lifecycle");
 
             } catch (ExecutionException | InterruptedException e) {
+                Log.e(TAG, "Camera start error: " + e.getMessage());
                 e.printStackTrace();
             }
         }, ContextCompat.getMainExecutor(requireContext()));
