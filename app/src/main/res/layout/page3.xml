@@ -27,7 +27,7 @@
         android:layout_marginEnd="24dp"
         android:layout_marginTop="12dp" />
 
-    <!-- 真ん中上：カメラチェック -->
+    <!-- 真ん中上：カメラチェック（ボタンとボタンの間に配置） -->
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
@@ -41,31 +41,16 @@
         android:layout_marginTop="24dp"
         app:layout_constraintHorizontal_bias="0.5" />
 
-    <!-- カメラウィンドウ -->
-    <androidx.camera.view.PreviewView
+    <!-- カメラウィンドウ（残り全部） -->
+    <FrameLayout
         android:id="@+id/cameraPreview"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="#DAD0E8"
-        app:implementationMode="compatible"
         app:layout_constraintTop_toBottomOf="@+id/textView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="8dp" />
-
-    <!-- 待機メッセージ -->
-    <TextView
-        android:id="@+id/textLoading3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="カメラをじゅんびしています...\nしばらくおまちください"
-        android:gravity="center"
-        android:textColor="#666666"
-        android:textSize="16sp"
-        app:layout_constraintTop_toTopOf="@+id/cameraPreview"
-        app:layout_constraintBottom_toBottomOf="@+id/cameraPreview"
-        app:layout_constraintStart_toStartOf="@+id/cameraPreview"
-        app:layout_constraintEnd_toEndOf="@+id/cameraPreview" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
