@@ -4,15 +4,18 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
@@ -26,93 +29,98 @@ import java.util.concurrent.ExecutionException;
 
 public class Page5Fragment extends Fragment {
 
-    private int countdownSeconds = 60;  // デフォルト値
-    private Handler handler = new Handler();
+    private static final String TAG = "SmartTyping_Page5";
+    private int countdownSeconds = 60;
+    private final Handler handler = new Handler();
     private boolean running = true;
     private PreviewView previewView;
-    private static final int CAMERA_PERMISSION_CODE = 101;
+    private TextView timerView;
+    private TextView loadingText;
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    startCamera();
+                } else {
+                    Toast.makeText(requireContext(), "カメラ権限が必要です", Toast.LENGTH_SHORT).show();
+                }
+            });
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.page5, container, false);
+        return inflater.inflate(R.layout.page5, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         Button btnQuit = view.findViewById(R.id.button51);
-        TextView timerView = view.findViewById(R.id.textTimer);
+        timerView = view.findViewById(R.id.textTimer);
         previewView = view.findViewById(R.id.cameraPreview5);
+        loadingText = view.findViewById(R.id.textLoading5);
 
-        // Page4から送られてきたデータを取得
         int minutes = 1;
         if (getArguments() != null) {
             minutes = getArguments().getInt("minutes", 1);
         }
         countdownSeconds = 60 * minutes;
 
-        // カウントダウン開始
-        startCountdown(timerView);
+        startCountdown();
+        checkAndStartCamera();
 
-        // カメラ権限のチェックと起動
-        checkPermissionAndStartCamera();
-
-        // 「やめる」ボタン
-        btnQuit.setOnClickListener(v -> {
-            stopTimerAndGoBack();
-        });
-
-        return view;
+        btnQuit.setOnClickListener(v -> stopTimerAndGoBack());
     }
 
-    private void checkPermissionAndStartCamera() {
+    private void checkAndStartCamera() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else {
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startCamera();
-            } else {
-                Toast.makeText(requireContext(), "カメラ権限が必要です", Toast.LENGTH_SHORT).show();
-            }
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
     }
 
     private void startCamera() {
-        Log.d("SmartTyping", "startCamera() called");
+        if (previewView == null) return;
+
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(requireContext());
 
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                Log.d("SmartTyping", "CameraProvider obtained");
 
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
+                // インカメラ（前面）を指定
                 CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
 
                 cameraProvider.unbindAll();
                 cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview);
-                Log.d("SmartTyping", "Camera bound to lifecycle");
+                
+                // カメラが起動したらメッセージを消す
+                if (loadingText != null) {
+                    loadingText.setVisibility(View.GONE);
+                }
+                Log.d(TAG, "Camera started successfully");
 
             } catch (ExecutionException | InterruptedException e) {
-                Log.e("SmartTyping", "Camera start error: " + e.getMessage());
-                e.printStackTrace();
+                if (loadingText != null) {
+                    loadingText.setText("カメラのきどうに失敗しました");
+                }
+                Log.e(TAG, "Camera initialization failed", e);
             }
         }, ContextCompat.getMainExecutor(requireContext()));
     }
 
-    private void startCountdown(TextView timerView) {
+    private void startCountdown() {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                if (!running) return;
+                if (!running || timerView == null) return;
 
                 int minutes = countdownSeconds / 60;
                 int secs = countdownSeconds % 60;
@@ -132,15 +140,17 @@ public class Page5Fragment extends Fragment {
 
     private void stopTimerAndGoBack() {
         running = false;
-        requireActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.container, new Page1Fragment())
-                .commit();
+        if (isAdded()) {
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.container, new Page1Fragment())
+                    .commit();
+        }
     }
 
     private void finishSession() {
         running = false;
-        if (isAdded() && getActivity() != null) {
+        if (isAdded()) {
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.container, new Page6Fragment())
@@ -153,5 +163,8 @@ public class Page5Fragment extends Fragment {
         super.onDestroyView();
         running = false;
         handler.removeCallbacksAndMessages(null);
+        previewView = null;
+        timerView = null;
+        loadingText = null;
     }
 }
