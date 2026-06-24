@@ -2,6 +2,7 @@ package com.example.smarttyping;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
@@ -23,15 +25,23 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.mediapipe.framework.image.MPImage;
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class Page4Fragment extends Fragment {
+public class Page4Fragment extends Fragment implements HandLandmarkerHelper.LandmarkerListener {
 
     private static final String TAG = "SmartTyping_Page4";
     private PreviewView previewView;
+    private OverlayView overlayView;
     private TextView loadingText;
     private int minutes = 1;
+
+    private HandLandmarkerHelper handLandmarkerHelper;
+    private ExecutorService backgroundExecutor;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -52,14 +62,20 @@ public class Page4Fragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        backgroundExecutor = Executors.newSingleThreadExecutor();
+
         Button btnBack = view.findViewById(R.id.button41);
         Button btnPlay = view.findViewById(R.id.button42);
         previewView = view.findViewById(R.id.cameraPreview4);
+        overlayView = view.findViewById(R.id.overlayView4);
         loadingText = view.findViewById(R.id.textLoading4);
 
         if (getArguments() != null) {
             minutes = getArguments().getInt("minutes", 1);
         }
+
+        // MediaPipeの準備
+        handLandmarkerHelper = new HandLandmarkerHelper(requireContext(), this);
 
         btnBack.setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager()
@@ -106,16 +122,38 @@ public class Page4Fragment extends Fragment {
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
+                // MediaPipe用の画像解析
+                ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                        .build();
+
+                imageAnalysis.setAnalyzer(backgroundExecutor, imageProxy -> {
+                    Bitmap bitmap = Bitmap.createBitmap(
+                            imageProxy.getWidth(),
+                            imageProxy.getHeight(),
+                            Bitmap.Config.ARGB_8888
+                    );
+                    bitmap.copyPixelsFromBuffer(imageProxy.getPlanes()[0].getBuffer());
+                    
+                    int rotationDegrees = imageProxy.getImageInfo().getRotationDegrees();
+                    imageProxy.close();
+
+                    if (handLandmarkerHelper != null) {
+                        handLandmarkerHelper.detectLiveStream(bitmap, true);
+                    }
+                });
+
+                // 背面カメラ（外側）を指定
+                CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
 
                 cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview);
+                cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview, imageAnalysis);
                 
-                // カメラが起動したらメッセージを消す
                 if (loadingText != null) {
                     loadingText.setVisibility(View.GONE);
                 }
-                Log.d(TAG, "Camera started successfully");
+                Log.d(TAG, "Camera started successfully with MediaPipe");
 
             } catch (ExecutionException | InterruptedException e) {
                 if (loadingText != null) {
@@ -127,9 +165,30 @@ public class Page4Fragment extends Fragment {
     }
 
     @Override
+    public void onResults(HandLandmarkerResult result, MPImage image) {
+        requireActivity().runOnUiThread(() -> {
+            if (overlayView != null) {
+                overlayView.setResults(result, image.getWidth(), image.getHeight());
+            }
+        });
+    }
+
+    @Override
+    public void onError(String error) {
+        requireActivity().runOnUiThread(() -> {
+            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
+        backgroundExecutor.shutdown();
+        if (handLandmarkerHelper != null) {
+            handLandmarkerHelper.clear();
+        }
         previewView = null;
+        overlayView = null;
         loadingText = null;
     }
 }

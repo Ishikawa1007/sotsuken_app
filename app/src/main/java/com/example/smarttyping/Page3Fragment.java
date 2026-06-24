@@ -106,7 +106,8 @@ public class Page3Fragment extends Fragment {
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
+                // 背面カメラ（外側）を指定
+                CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
 
                 cameraProvider.unbindAll();
                 cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview);

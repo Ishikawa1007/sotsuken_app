@@ -55,6 +55,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="8dp" />
 
+    <!-- MediaPipe Overlay -->
+    <com.example.smarttyping.OverlayView
+        android:id="@+id/overlayView5"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="@+id/cameraPreview5"
+        app:layout_constraintBottom_toBottomOf="@+id/cameraPreview5"
+        app:layout_constraintStart_toStartOf="@+id/cameraPreview5"
+        app:layout_constraintEnd_toEndOf="@+id/cameraPreview5" />
+
     <!-- 待機メッセージ -->
     <TextView
         android:id="@+id/textLoading5"
