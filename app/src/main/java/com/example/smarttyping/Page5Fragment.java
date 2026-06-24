@@ -134,13 +134,20 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
                 // 背面カメラ（外側）を指定
                 CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
 
-                cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview, imageAnalysis);
-                
-                if (loadingText != null) {
-                    loadingText.setVisibility(View.GONE);
+                try {
+                    cameraProvider.unbindAll();
+                    cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview, imageAnalysis);
+                    
+                    if (loadingText != null) {
+                        loadingText.setVisibility(View.GONE);
+                    }
+                    Log.d(TAG, "Camera started successfully with MediaPipe");
+                } catch (IllegalArgumentException e) {
+                    Log.e(TAG, "Selected camera not found: " + e.getMessage());
+                    if (loadingText != null) {
+                        loadingText.setText("背面カメラが見つかりません。\n設定を確認してください。");
+                    }
                 }
-                Log.d(TAG, "Camera started successfully with MediaPipe");
 
             } catch (ExecutionException | InterruptedException e) {
                 if (loadingText != null) {

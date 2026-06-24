@@ -109,14 +109,21 @@ public class Page3Fragment extends Fragment {
                 // 背面カメラ（外側）を指定
                 CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
 
-                cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview);
-                
-                // カメラが起動したらメッセージを消す
-                if (loadingText != null) {
-                    loadingText.setVisibility(View.GONE);
+                try {
+                    cameraProvider.unbindAll();
+                    cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview);
+                    
+                    if (loadingText != null) {
+                        loadingText.setVisibility(View.GONE);
+                    }
+                    Log.d(TAG, "Camera started successfully");
+                } catch (IllegalArgumentException e) {
+                    // 指定したカメラが見つからない場合の処理
+                    Log.e(TAG, "Selected camera not found: " + e.getMessage());
+                    if (loadingText != null) {
+                        loadingText.setText("背面カメラが見つかりません。\n設定を確認してください。");
+                    }
                 }
-                Log.d(TAG, "Camera started successfully");
 
             } catch (ExecutionException | InterruptedException e) {
                 if (loadingText != null) {
