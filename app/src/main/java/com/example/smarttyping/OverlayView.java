@@ -62,14 +62,14 @@ public class OverlayView extends View {
             
             for (int idx : fingerTips) {
                 NormalizedLandmark landmark = landmarks.get(idx);
-                float x = landmark.x() * getWidth();
+                float x = (1 - landmark.x()) * getWidth();
                 float y = landmark.y() * getHeight();
 
                 // 円を描画
                 canvas.drawCircle(x, y, 20f, pointPaint);
 
                 // 座標テキストを表示
-                String coords = String.format("(%.2f, %.2f)", landmark.x(), landmark.y());
+                String coords = String.format("(%.2f, %.2f)", 1 - landmark.x(), landmark.y());
                 canvas.drawText(coords, x + 25, y, textPaint);
             }
         }
