@@ -53,7 +53,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintDimensionRatio="8:3"
+        app:layout_constraintDimensionRatio="H,8:3"
         android:layout_margin="8dp" />
 
     <!-- MediaPipe Overlay -->

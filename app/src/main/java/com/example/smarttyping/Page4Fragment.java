@@ -121,6 +121,8 @@ public class Page4Fragment extends Fragment implements HandLandmarkerHelper.Land
 
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
+                // 縦優先で切り抜く（高さを優先して表示し、横は必要に応じて切り落とす）
+                previewView.setScaleType(PreviewView.ScaleType.FILL_CENTER);
 
                 // MediaPipe用の画像解析
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
