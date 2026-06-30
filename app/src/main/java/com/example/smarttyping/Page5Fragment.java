@@ -5,7 +5,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.util.Log;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +48,9 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
 
     private HandLandmarkerHelper handLandmarkerHelper;
     private ExecutorService backgroundExecutor;
+    // Throttle inference to approximately 20 FPS (50 ms interval)
+    private volatile long lastAnalyzedTimeMs = 0;
+    private static final long ANALYSIS_INTERVAL_MS = 50;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -108,18 +113,28 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
 
-                Preview preview = new Preview.Builder().build();
+                Preview preview = new Preview.Builder()
+                        .setTargetResolution(new Size(640, 240))
+                        .build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
                 // 縦優先で切り抜く（高さを優先して表示し、横は必要に応じて切り落とす）
                 previewView.setScaleType(PreviewView.ScaleType.FILL_CENTER);
 
                 // MediaPipe用の画像解析
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+                        .setTargetResolution(new Size(640, 240))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                         .build();
 
                 imageAnalysis.setAnalyzer(backgroundExecutor, imageProxy -> {
+                    long now = SystemClock.uptimeMillis();
+                    if (now - lastAnalyzedTimeMs < ANALYSIS_INTERVAL_MS) {
+                        imageProxy.close();
+                        return;
+                    }
+                    lastAnalyzedTimeMs = now;
+
                     Bitmap bitmap = Bitmap.createBitmap(
                             imageProxy.getWidth(),
                             imageProxy.getHeight(),
