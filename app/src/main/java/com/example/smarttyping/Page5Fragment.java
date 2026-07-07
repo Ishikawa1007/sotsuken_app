@@ -45,6 +45,9 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
     private OverlayView overlayView;
     private TextView timerView;
     private TextView loadingText;
+    private TextView targetTextView;
+    private TextView inputTextView;
+    private StringBuilder currentInput = new StringBuilder();
 
     private HandLandmarkerHelper handLandmarkerHelper;
     private ExecutorService backgroundExecutor;
@@ -78,6 +81,22 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
         previewView = view.findViewById(R.id.cameraPreview5);
         overlayView = view.findViewById(R.id.overlayView5);
         loadingText = view.findViewById(R.id.textLoading5);
+        targetTextView = view.findViewById(R.id.textTarget);
+        inputTextView = view.findViewById(R.id.textInput);
+
+        overlayView.setKeyEventListener(label -> {
+            requireActivity().runOnUiThread(() -> {
+                if (label.equals("←")) {
+                    if (currentInput.length() > 0) {
+                        currentInput.deleteCharAt(currentInput.length() - 1);
+                    }
+                } else {
+                    currentInput.append(label);
+                }
+                inputTextView.setText(currentInput.toString());
+                checkInput();
+            });
+        });
 
         int minutes = 1;
         if (getArguments() != null) {
@@ -204,6 +223,16 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
                 }
             }
         });
+    }
+
+    private void checkInput() {
+        String target = targetTextView.getText().toString();
+        String input = currentInput.toString();
+        if (input.equals(target)) {
+            Toast.makeText(requireContext(), "正解！", Toast.LENGTH_SHORT).show();
+            // 次の単語へ行くか、セッション終了などの処理
+            finishSession();
+        }
     }
 
     private void stopTimerAndGoBack() {
