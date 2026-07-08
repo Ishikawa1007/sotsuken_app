@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult;
@@ -108,8 +109,8 @@ public class OverlayView extends View {
         float margin = 10f;
         int cols = 10;
         float keyWidth = (getWidth() - margin * (cols + 1)) / cols;
-        float keyHeight = 120f;
-        float startY = getHeight() - 450f;
+        float keyHeight = 80f; // 120f から 80f に縮小
+        float startY = getHeight() - 350f; // 全体が低くなりすぎるのを防ぐため開始位置を調整
 
         String[] row1 = {"Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"};
         for (int i = 0; i < row1.length; i++) {
@@ -189,6 +190,39 @@ public class OverlayView extends View {
     }
 
     @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        float x = event.getX();
+        float y = event.getY();
+
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
+                for (VirtualKey key : keys) {
+                    if (key.contains(x, y)) {
+                        key.isPressed = true;
+                        // タッチの場合は即入力
+                        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                            if (keyEventListener != null) {
+                                keyEventListener.onKeyClicked(key.label);
+                            }
+                        }
+                    } else {
+                        key.isPressed = false;
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                for (VirtualKey key : keys) {
+                    key.isPressed = false;
+                }
+                break;
+        }
+        invalidate();
+        return true;
+    }
+
+    @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
@@ -222,7 +256,7 @@ public class OverlayView extends View {
             }
 
             // 文字
-            canvas.drawText(key.label, drawX + drawW * 0.3f, drawY + drawH * 0.7f, textPaint);
+            canvas.drawText(key.label, drawX + drawW * 0.3f, drawY + drawH * 0.75f, textPaint);
         }
 
         // デバッグ用：全体の押し込みスコアバー

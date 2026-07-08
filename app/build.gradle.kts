@@ -4,27 +4,16 @@ plugins {
 
 android {
     namespace = "com.example.smarttyping"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
-        // applicationId を更新しました：com.example.smarttyping
         applicationId = "com.example.smarttyping"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        ndk {
-            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
-        }
-    }
-
-    packaging {
-        jniLibs {
-            useLegacyPackaging = true
-        }
     }
 
     buildTypes {
@@ -52,6 +41,7 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.mediapipe.tasks.vision)
+    implementation("com.google.ar:core:1.47.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

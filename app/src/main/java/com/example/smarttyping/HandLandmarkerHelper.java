@@ -26,16 +26,16 @@ public class HandLandmarkerHelper {
     }
 
     public HandLandmarkerHelper(Context context, LandmarkerListener listener) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.listener = listener;
         setupHandLandmarker();
     }
 
     private void setupHandLandmarker() {
-        BaseOptions.Builder baseOptionsBuilder = BaseOptions.builder()
-                .setModelAssetPath(MP_HAND_LANDMARKER_TASK);
-
         try {
+            BaseOptions.Builder baseOptionsBuilder = BaseOptions.builder()
+                    .setModelAssetPath(MP_HAND_LANDMARKER_TASK);
+
             HandLandmarker.HandLandmarkerOptions options = HandLandmarker.HandLandmarkerOptions.builder()
                     .setBaseOptions(baseOptionsBuilder.build())
                     .setRunningMode(RunningMode.LIVE_STREAM)
@@ -48,12 +48,12 @@ public class HandLandmarkerHelper {
                     .build();
 
             handLandmarker = HandLandmarker.createFromOptions(context, options);
-        } catch (IllegalStateException e) {
-            listener.onError("Hand Landmarker failed to initialize. See error logs for details");
-            Log.e(TAG, "MediaPipe error: " + e.getMessage());
-        } catch (RuntimeException e) {
-            listener.onError("Hand Landmarker failed to initialize. Assets folder might be missing the task file.");
-            Log.e(TAG, "MediaPipe error: " + e.getMessage());
+        } catch (Throwable t) {
+            // UnsatisfiedLinkError も含めてすべてキャッチ
+            Log.e(TAG, "MediaPipe could not be initialized: " + t.getMessage());
+            if (listener != null) {
+                listener.onError("MediaPipeは無効化されました（ライブラリエラー）");
+            }
         }
     }
 
