@@ -104,18 +104,26 @@ public class Page3Fragment extends Fragment {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
 
-                Preview preview = new Preview.Builder()
-                        .setTargetResolution(new Size(640, 240))
-                        .build();
+                Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                // フロントカメラ（内側）を指定
+                // フロントカメラ（内側）を優先し、なければ背面を使用
                 CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
+                try {
+                    if (!cameraProvider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)) {
+                        cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+                    }
+                } catch (Exception e) {
+                    cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+                }
 
                 cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview);
+                try {
+                    cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview);
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to bind camera", e);
+                }
                 
-                // カメラが起動したらメッセージを消す
                 if (loadingText != null) {
                     loadingText.setVisibility(View.GONE);
                 }

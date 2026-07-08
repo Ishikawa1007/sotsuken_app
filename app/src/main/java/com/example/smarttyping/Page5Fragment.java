@@ -31,6 +31,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mediapipe.framework.image.MPImage;
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -132,21 +133,18 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
 
-                Preview preview = new Preview.Builder()
-                        .setTargetResolution(new Size(640, 240))
-                        .build();
+                Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
-                // 縦優先で切り抜く（高さを優先して表示し、横は必要に応じて切り落とす）
                 previewView.setScaleType(PreviewView.ScaleType.FILL_CENTER);
 
-                // MediaPipe用の画像解析
+                // MediaPipe用の画像解析（RGBA_8888はエミュレータによって不安定なため一旦デフォルトに戻す検討も必要ですが、まずは解像度指定を外します）
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                        .setTargetResolution(new Size(640, 240))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                         .build();
 
                 imageAnalysis.setAnalyzer(backgroundExecutor, imageProxy -> {
+                    // ... (既存の解析ロジック)
                     long now = SystemClock.uptimeMillis();
                     if (now - lastAnalyzedTimeMs < ANALYSIS_INTERVAL_MS) {
                         imageProxy.close();
@@ -167,16 +165,20 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
                     }
                 });
 
-                // フロントカメラ（内側）を指定
-                CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
-
+                // エミュレータで最も安定する背面カメラをデフォルトにする
+                CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+                
                 cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview, imageAnalysis);
+                try {
+                    cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview, imageAnalysis);
+                } catch (Exception e) {
+                    Log.e(TAG, "Binding failed", e);
+                }
                 
                 if (loadingText != null) {
                     loadingText.setVisibility(View.GONE);
                 }
-                Log.d(TAG, "Camera started successfully with MediaPipe");
+                Log.d(TAG, "Camera started successfully");
 
             } catch (ExecutionException | InterruptedException e) {
                 if (loadingText != null) {

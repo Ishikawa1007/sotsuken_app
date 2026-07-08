@@ -58,10 +58,11 @@ public class HandLandmarkerHelper {
     }
 
     public void detectLiveStream(Bitmap bitmap, boolean isFrontCamera) {
+        if (handLandmarker == null) return; // 初期化に失敗している場合は何もしない
+        
         long frameTime = SystemClock.uptimeMillis();
         MPImage mpImage = new BitmapImageBuilder(bitmap).build();
         
-        // 前面カメラの場合は左右反転が必要な場合があるが、まずはシンプルに送る
         handLandmarker.detectAsync(mpImage, frameTime);
     }
 

@@ -124,16 +124,12 @@ public class Page4Fragment extends Fragment implements HandLandmarkerHelper.Land
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
 
-                Preview preview = new Preview.Builder()
-                        .setTargetResolution(new Size(640, 240))
-                        .build();
+                Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
-                // 縦優先で切り抜く（高さを優先して表示し、横は必要に応じて切り落とす）
                 previewView.setScaleType(PreviewView.ScaleType.FILL_CENTER);
 
                 // MediaPipe用の画像解析
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                        .setTargetResolution(new Size(640, 240))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                         .build();
@@ -141,7 +137,6 @@ public class Page4Fragment extends Fragment implements HandLandmarkerHelper.Land
                 imageAnalysis.setAnalyzer(backgroundExecutor, imageProxy -> {
                     long now = SystemClock.uptimeMillis();
                     if (now - lastAnalyzedTimeMs < ANALYSIS_INTERVAL_MS) {
-                        // Skip this frame to reduce inference frequency
                         imageProxy.close();
                         return;
                     }
@@ -153,8 +148,6 @@ public class Page4Fragment extends Fragment implements HandLandmarkerHelper.Land
                             Bitmap.Config.ARGB_8888
                     );
                     bitmap.copyPixelsFromBuffer(imageProxy.getPlanes()[0].getBuffer());
-
-                    int rotationDegrees = imageProxy.getImageInfo().getRotationDegrees();
                     imageProxy.close();
 
                     if (handLandmarkerHelper != null) {
@@ -162,11 +155,22 @@ public class Page4Fragment extends Fragment implements HandLandmarkerHelper.Land
                     }
                 });
 
-                // フロントカメラ（内側）を指定
+                // フロントカメラ（内側）を優先し、なければ背面を使用
                 CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
+                try {
+                    if (!cameraProvider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)) {
+                        cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+                    }
+                } catch (Exception e) {
+                    cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+                }
 
                 cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview, imageAnalysis);
+                try {
+                    cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview, imageAnalysis);
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to bind camera", e);
+                }
                 
                 if (loadingText != null) {
                     loadingText.setVisibility(View.GONE);

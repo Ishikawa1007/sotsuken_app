@@ -67,6 +67,9 @@ public class OverlayView extends View {
     }
 
     private void initPaints() {
+        // ソフトウェアレンダリングを有効化（影の描画に必要）
+        setLayerType(LAYER_TYPE_SOFTWARE, null);
+
         linePaint.setColor(Color.GREEN);
         linePaint.setStrokeWidth(8f);
         linePaint.setStyle(Paint.Style.STROKE);
@@ -77,15 +80,18 @@ public class OverlayView extends View {
 
         textPaint.setColor(Color.WHITE);
         textPaint.setTextSize(40f);
+        textPaint.setFakeBoldText(true);
         textPaint.setShadowLayer(5f, 0f, 0f, Color.BLACK);
 
-        keyPaint.setColor(Color.argb(128, 200, 200, 200));
+        keyPaint.setColor(Color.argb(180, 60, 60, 70)); // 少し濃いめの色
         keyPaint.setStyle(Paint.Style.FILL);
+        keyPaint.setShadowLayer(15f, 0f, 10f, Color.BLACK); // 浮いている影
 
-        keySelectedPaint.setColor(Color.argb(200, 255, 255, 0));
+        keySelectedPaint.setColor(Color.argb(220, 255, 255, 100));
         keySelectedPaint.setStyle(Paint.Style.FILL);
+        keySelectedPaint.setShadowLayer(20f, 0f, 0f, Color.YELLOW); // 選択時の光
 
-        progressPaint.setColor(Color.argb(150, 0, 255, 0));
+        progressPaint.setColor(Color.argb(180, 0, 255, 120));
         progressPaint.setStyle(Paint.Style.FILL);
     }
 
@@ -188,42 +194,74 @@ public class OverlayView extends View {
         
         // キーボードの描画
         if (keys.isEmpty()) initKeys();
+        
         for (VirtualKey key : keys) {
-            canvas.drawRect(key.x, key.y, key.x + key.width, key.y + key.height, key.isPressed ? keySelectedPaint : keyPaint);
-            
-            // 押し込み進行状況の描画（選択中のキーのみ）
-            if (key.isPressed && !key.hasTriggered) {
-                // スコア 0.0(平ら) 〜 PRESS_RATIO_THRESHOLD(クリック) の範囲を 0〜1 に変換
-                float progress = currentPressScore / PRESS_RATIO_THRESHOLD;
-                progress = Math.max(0f, Math.min(progress, 1.0f));
-                canvas.drawRect(key.x, key.y + key.height * (1 - progress), key.x + key.width, key.y + key.height, progressPaint);
+            // 押し込み度合い (0.0 〜 1.0)
+            float pressProgress = 0f;
+            if (key.isPressed) {
+                pressProgress = currentPressScore / PRESS_RATIO_THRESHOLD;
+                pressProgress = Math.max(0f, Math.min(pressProgress, 1.0f));
             }
 
-            canvas.drawText(key.label, key.x + key.width / 4, key.y + key.height * 0.7f, textPaint);
+            // 立体的な演出：押し込むほどサイズを少し小さくし、位置を下にずらす（奥に沈む表現）
+            float scale = 1.0f - (pressProgress * 0.15f); // 最大15%縮小
+            float offsetX = (key.width * (1 - scale)) / 2;
+            float offsetY = (key.height * (1 - scale)) / 2 + (pressProgress * 15f); // 下にずらす
+
+            float drawX = key.x + offsetX;
+            float drawY = key.y + offsetY;
+            float drawW = key.width * scale;
+            float drawH = key.height * scale;
+
+            // ボタン本体（角丸）
+            canvas.drawRoundRect(drawX, drawY, drawX + drawW, drawY + drawH, 15f, 15f, key.isPressed ? keySelectedPaint : keyPaint);
+            
+            // 押し込み進行状況（ゲージ）
+            if (key.isPressed && !key.hasTriggered) {
+                canvas.drawRoundRect(drawX, drawY + drawH * (1 - pressProgress), drawX + drawW, drawY + drawH, 15f, 15f, progressPaint);
+            }
+
+            // 文字
+            canvas.drawText(key.label, drawX + drawW * 0.3f, drawY + drawH * 0.7f, textPaint);
         }
 
-        // デバッグ用：全体の押し込みスコアバーを画面上部に表示
-        float barWidth = 300f;
-        float barHeight = 20f;
-        float barX = (getWidth() - barWidth) / 2;
-        float barY = 50f;
-        float progress = currentPressScore / PRESS_RATIO_THRESHOLD;
-        progress = Math.max(0f, Math.min(progress, 1.0f));
-        
-        canvas.drawRect(barX, barY, barX + barWidth, barY + barHeight, keyPaint); // 背景
-        canvas.drawRect(barX, barY, barX + (barWidth * progress), barY + barHeight, progressPaint); // 進捗
-        canvas.drawText("Press Depth", barX, barY - 10, textPaint);
+        // デバッグ用：全体の押し込みスコアバー
+        drawDepthBar(canvas);
 
         if (results == null || results.landmarks() == null) return;
 
+        // 指先の描画
+        drawFingerTips(canvas);
+    }
+
+    private void drawDepthBar(Canvas canvas) {
+        float barWidth = 300f;
+        float barHeight = 25f;
+        float barX = (getWidth() - barWidth) / 2;
+        float barY = 60f;
+        float progress = currentPressScore / PRESS_RATIO_THRESHOLD;
+        progress = Math.max(0f, Math.min(progress, 1.0f));
+        
+        Paint bgPaint = new Paint();
+        bgPaint.setColor(Color.argb(100, 0, 0, 0));
+        canvas.drawRoundRect(barX, barY, barX + barWidth, barY + barHeight, 10f, 10f, bgPaint);
+        canvas.drawRoundRect(barX, barY, barX + (barWidth * progress), barY + barHeight, 10f, 10f, progressPaint);
+        canvas.drawText("Press Depth", barX, barY - 15, textPaint);
+    }
+
+    private void drawFingerTips(Canvas canvas) {
         for (List<NormalizedLandmark> landmarks : results.landmarks()) {
-            int[] fingerTips = {4, 8, 12, 16, 20};
-            for (int idx : fingerTips) {
-                NormalizedLandmark landmark = landmarks.get(idx);
-                float x = (1 - landmark.x()) * getWidth();
-                float y = landmark.y() * getHeight();
-                canvas.drawCircle(x, y, 20f, pointPaint);
-            }
+            NormalizedLandmark tip = landmarks.get(8); // 人差し指
+            float x = (1 - tip.x()) * getWidth();
+            float y = tip.y() * getHeight();
+            
+            // 指先に光の輪をつける（AR風）
+            Paint glowPaint = new Paint();
+            glowPaint.setColor(Color.argb(100, 255, 255, 255));
+            glowPaint.setStyle(Paint.Style.STROKE);
+            glowPaint.setStrokeWidth(5f);
+            canvas.drawCircle(x, y, 30f + (currentPressScore * 20f), glowPaint);
+            canvas.drawCircle(x, y, 15f, pointPaint);
         }
     }
 }
