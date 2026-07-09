@@ -19,30 +19,57 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.camera.core.CameraSelector;
-import androidx.camera.core.ImageAnalysis;
-import androidx.camera.core.Preview;
-import androidx.camera.lifecycle.ProcessCameraProvider;
-import androidx.camera.view.PreviewView;
+import android.opengl.GLES11Ext;
+import android.opengl.GLES20;
+import android.opengl.GLSurfaceView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.ar.core.Config;
+import com.google.ar.core.Frame;
+import com.google.ar.core.Plane;
+import com.google.ar.core.Session;
+import com.google.ar.core.TrackingState;
+import com.google.ar.core.exceptions.UnavailableApkTooOldException;
+import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
+import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
+import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.mediapipe.framework.image.MPImage;
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Page5Fragment extends Fragment implements HandLandmarkerHelper.LandmarkerListener {
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
+
+public class Page5Fragment extends Fragment implements HandLandmarkerHelper.LandmarkerListener, GLSurfaceView.Renderer {
 
     private static final String TAG = "SmartTyping_Page5";
     private int countdownSeconds = 60;
     private final Handler handler = new Handler();
     private boolean running = true;
-    private PreviewView previewView;
+    
+    private GLSurfaceView surfaceView;
+    private Session arSession;
+    private com.google.ar.core.Anchor keyboardAnchor = null;
+    private int backgroundTextureId = -1;
+
+    // 背景描画用
+    private static final String VERTEX_SHADER =
+            "attribute vec4 a_Position; attribute vec2 a_TexCoord; varying vec2 v_TexCoord; " +
+            "void main() { gl_Position = a_Position; v_TexCoord = a_TexCoord; }";
+    private static final String FRAGMENT_SHADER =
+            "#extension GL_OES_EGL_image_external : require\n" +
+            "precision mediump float; varying vec2 v_TexCoord; uniform samplerExternalOES s_Texture; " +
+            "void main() { gl_FragColor = texture2D(s_Texture, v_TexCoord); }";
+    
+    private int program;
+    private java.nio.FloatBuffer vertexBuffer;
+    private java.nio.FloatBuffer texCoordBuffer;
+    
     private OverlayView overlayView;
     private TextView timerView;
     private TextView loadingText;
@@ -52,14 +79,13 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
 
     private HandLandmarkerHelper handLandmarkerHelper;
     private ExecutorService backgroundExecutor;
-    // Throttle inference to approximately 20 FPS (50 ms interval)
     private volatile long lastAnalyzedTimeMs = 0;
-    private static final long ANALYSIS_INTERVAL_MS = 50;
+    private static final long ANALYSIS_INTERVAL_MS = 100; // ARCoreとの並行処理のため少し長めに設定
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    startCamera();
+                    resumeAR();
                 } else {
                     Toast.makeText(requireContext(), "カメラ権限が必要です", Toast.LENGTH_SHORT).show();
                 }
@@ -79,11 +105,18 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
 
         Button btnQuit = view.findViewById(R.id.button51);
         timerView = view.findViewById(R.id.textTimer);
-        previewView = view.findViewById(R.id.cameraPreview5);
+        surfaceView = view.findViewById(R.id.arSurfaceView5);
         overlayView = view.findViewById(R.id.overlayView5);
         loadingText = view.findViewById(R.id.textLoading5);
         targetTextView = view.findViewById(R.id.textTarget);
         inputTextView = view.findViewById(R.id.textInput);
+
+        // GLSurfaceViewの設定
+        surfaceView.setPreserveEGLContextOnPause(true);
+        surfaceView.setEGLContextClientVersion(2);
+        surfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+        surfaceView.setRenderer(this);
+        surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
         overlayView.setKeyEventListener(label -> {
             requireActivity().runOnUiThread(() -> {
@@ -109,84 +142,140 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
         handLandmarkerHelper = new HandLandmarkerHelper(requireContext(), this);
 
         startCountdown();
-        checkAndStartCamera();
-
         btnQuit.setOnClickListener(v -> stopTimerAndGoBack());
     }
 
-    private void checkAndStartCamera() {
+    @Override
+    public void onResume() {
+        super.onResume();
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
-            startCamera();
+            resumeAR();
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
     }
 
-    private void startCamera() {
-        if (previewView == null) return;
-
-        ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
-                ProcessCameraProvider.getInstance(requireContext());
-
-        cameraProviderFuture.addListener(() -> {
+    private void resumeAR() {
+        if (arSession == null) {
             try {
-                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-
-                Preview preview = new Preview.Builder().build();
-                preview.setSurfaceProvider(previewView.getSurfaceProvider());
-                previewView.setScaleType(PreviewView.ScaleType.FILL_CENTER);
-
-                // MediaPipe用の画像解析（RGBA_8888はエミュレータによって不安定なため一旦デフォルトに戻す検討も必要ですが、まずは解像度指定を外します）
-                ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                        .build();
-
-                imageAnalysis.setAnalyzer(backgroundExecutor, imageProxy -> {
-                    // ... (既存の解析ロジック)
-                    long now = SystemClock.uptimeMillis();
-                    if (now - lastAnalyzedTimeMs < ANALYSIS_INTERVAL_MS) {
-                        imageProxy.close();
-                        return;
-                    }
-                    lastAnalyzedTimeMs = now;
-
-                    Bitmap bitmap = Bitmap.createBitmap(
-                            imageProxy.getWidth(),
-                            imageProxy.getHeight(),
-                            Bitmap.Config.ARGB_8888
-                    );
-                    bitmap.copyPixelsFromBuffer(imageProxy.getPlanes()[0].getBuffer());
-                    imageProxy.close();
-
-                    if (handLandmarkerHelper != null) {
-                        handLandmarkerHelper.detectLiveStream(bitmap, true);
-                    }
-                });
-
-                // エミュレータで最も安定する背面カメラをデフォルトにする
-                CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
-                
-                cameraProvider.unbindAll();
-                try {
-                    cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview, imageAnalysis);
-                } catch (Exception e) {
-                    Log.e(TAG, "Binding failed", e);
-                }
-                
-                if (loadingText != null) {
-                    loadingText.setVisibility(View.GONE);
-                }
-                Log.d(TAG, "Camera started successfully");
-
-            } catch (ExecutionException | InterruptedException e) {
-                if (loadingText != null) {
-                    loadingText.setText("カメラのきどうに失敗しました");
-                }
-                Log.e(TAG, "Camera initialization failed", e);
+                arSession = new Session(requireContext());
+                Config config = new Config(arSession);
+                config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
+                config.setPlaneFindingMode(Config.PlaneFindingMode.HORIZONTAL);
+                arSession.configure(config);
+            } catch (Exception e) {
+                Log.e(TAG, "ARCore session creation failed", e);
+                return;
             }
-        }, ContextCompat.getMainExecutor(requireContext()));
+        }
+
+        try {
+            arSession.resume();
+            surfaceView.onResume();
+        } catch (Exception e) {
+            Log.e(TAG, "ARCore session resume failed", e);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (arSession != null) {
+            surfaceView.onPause();
+            arSession.pause();
+        }
+    }
+
+    @Override
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        
+        // テクスチャ作成
+        int[] textures = new int[1];
+        GLES20.glGenTextures(1, textures, 0);
+        backgroundTextureId = textures[0];
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, backgroundTextureId);
+        
+        // シェーダー準備
+        int vShader = loadShader(GLES20.GL_VERTEX_SHADER, VERTEX_SHADER);
+        int fShader = loadShader(GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
+        program = GLES20.glCreateProgram();
+        GLES20.glAttachShader(program, vShader);
+        GLES20.glAttachShader(program, fShader);
+        GLES20.glLinkProgram(program);
+
+        vertexBuffer = java.nio.ByteBuffer.allocateDirect(8 * 4).order(java.nio.ByteOrder.nativeOrder()).asFloatBuffer();
+        vertexBuffer.put(new float[]{-1, -1, 1, -1, -1, 1, 1, 1}).position(0);
+        texCoordBuffer = java.nio.ByteBuffer.allocateDirect(8 * 4).order(java.nio.ByteOrder.nativeOrder()).asFloatBuffer();
+        texCoordBuffer.put(new float[]{0, 1, 1, 1, 0, 0, 1, 0}).position(0);
+    }
+
+    private int loadShader(int type, String code) {
+        int shader = GLES20.glCreateShader(type);
+        GLES20.glShaderSource(shader, code);
+        GLES20.glCompileShader(shader);
+        return shader;
+    }
+
+    @Override
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
+        if (arSession != null) {
+            arSession.setDisplayGeometry(0, width, height);
+        }
+        GLES20.glViewport(0, 0, width, height);
+    }
+
+    @Override
+    public void onDrawFrame(GL10 gl) {
+        if (arSession == null) return;
+
+        try {
+            arSession.setCameraTextureName(backgroundTextureId);
+            Frame frame = arSession.update();
+            
+            // 背景描画
+            GLES20.glUseProgram(program);
+            int posHandle = GLES20.glGetAttribLocation(program, "a_Position");
+            int texHandle = GLES20.glGetAttribLocation(program, "a_TexCoord");
+            GLES20.glEnableVertexAttribArray(posHandle);
+            GLES20.glEnableVertexAttribArray(texHandle);
+            GLES20.glVertexAttribPointer(posHandle, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+            GLES20.glVertexAttribPointer(texHandle, 2, GLES20.GL_FLOAT, false, 0, texCoordBuffer);
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+
+            Plane targetPlane = findFirstHorizontalPlane();
+            if (targetPlane != null) {
+                if (keyboardAnchor == null) {
+                    keyboardAnchor = targetPlane.createAnchor(targetPlane.getCenterPose());
+                }
+                
+                float[] viewMatrix = new float[16];
+                float[] projectionMatrix = new float[16];
+                float[] anchorMatrix = new float[16];
+                
+                frame.getCamera().getViewMatrix(viewMatrix, 0);
+                frame.getCamera().getProjectionMatrix(projectionMatrix, 0, 0.1f, 100.0f);
+                keyboardAnchor.getPose().toMatrix(anchorMatrix, 0);
+                
+                overlayView.setArMatrices(viewMatrix, projectionMatrix, anchorMatrix);
+                if (loadingText != null && loadingText.getVisibility() == View.VISIBLE) {
+                    requireActivity().runOnUiThread(() -> loadingText.setVisibility(View.GONE));
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error onDrawFrame", e);
+        }
+    }
+
+    private Plane findFirstHorizontalPlane() {
+        for (Plane plane : arSession.getAllTrackables(Plane.class)) {
+            if (plane.getTrackingState() == TrackingState.TRACKING && 
+                plane.getType() == Plane.Type.HORIZONTAL_UPWARD_FACING) {
+                return plane;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -266,7 +355,7 @@ public class Page5Fragment extends Fragment implements HandLandmarkerHelper.Land
         }
         running = false;
         handler.removeCallbacksAndMessages(null);
-        previewView = null;
+        surfaceView = null;
         overlayView = null;
         timerView = null;
         loadingText = null;

@@ -41,7 +41,7 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.mediapipe.tasks.vision)
-    implementation("com.google.ar:core:1.47.0")
+    implementation("com.google.ar:core:1.41.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
