@@ -12,6 +12,8 @@ import com.google.mediapipe.tasks.vision.core.RunningMode;
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker;
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult;
 
+import com.google.mediapipe.tasks.core.Delegate;
+
 public class HandLandmarkerHelper {
     private static final String TAG = "HandLandmarkerHelper";
     private static final String MP_HAND_LANDMARKER_TASK = "hand_landmarker.task";
@@ -35,6 +37,9 @@ public class HandLandmarkerHelper {
         try {
             BaseOptions.Builder baseOptionsBuilder = BaseOptions.builder()
                     .setModelAssetPath(MP_HAND_LANDMARKER_TASK);
+            
+            // 実機向け：GPU（DELEGATE_GPU）を優先的に使用する
+            baseOptionsBuilder.setDelegate(Delegate.GPU);
 
             HandLandmarker.HandLandmarkerOptions options = HandLandmarker.HandLandmarkerOptions.builder()
                     .setBaseOptions(baseOptionsBuilder.build())
@@ -49,10 +54,22 @@ public class HandLandmarkerHelper {
 
             handLandmarker = HandLandmarker.createFromOptions(context, options);
         } catch (Throwable t) {
-            // UnsatisfiedLinkError も含めてすべてキャッチ
-            Log.e(TAG, "MediaPipe could not be initialized: " + t.getMessage());
-            if (listener != null) {
-                listener.onError("MediaPipeは無効化されました（ライブラリエラー）");
+            Log.e(TAG, "MediaPipe initialization failed: " + t.getMessage());
+            // GPUが使えない場合はCPUにフォールバック
+            try {
+                BaseOptions.Builder cpuOptions = BaseOptions.builder()
+                        .setModelAssetPath(MP_HAND_LANDMARKER_TASK)
+                        .setDelegate(Delegate.CPU);
+                HandLandmarker.HandLandmarkerOptions options = HandLandmarker.HandLandmarkerOptions.builder()
+                        .setBaseOptions(cpuOptions.build())
+                        .setRunningMode(RunningMode.LIVE_STREAM)
+                        .setResultListener(this::returnLivestreamResult)
+                        .setErrorListener(this::returnLivestreamError)
+                        .setNumHands(2)
+                        .build();
+                handLandmarker = HandLandmarker.createFromOptions(context, options);
+            } catch (Exception e) {
+                if (listener != null) listener.onError("MediaPipe起動失敗");
             }
         }
     }
