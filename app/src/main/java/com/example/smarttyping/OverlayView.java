@@ -52,11 +52,13 @@ public class OverlayView extends View {
             this.pointsY = y;
         }
 
-        void updatePath(float scale, float yOffset) {
+        void updatePath(float yOffset) {
             path.reset();
-            path.moveTo(pointsX[0] * scale, (pointsY[0] + 120f) * scale + yOffset);
+            // Y座標を正しく計算（最小Y値81をベース0に）
+            float minY = 81f;
+            path.moveTo(pointsX[0], pointsY[0] - minY + yOffset);
             for (int i = 1; i < pointsX.length; i++) {
-                path.lineTo(pointsX[i] * scale, (pointsY[i] + 120f) * scale + yOffset);
+                path.lineTo(pointsX[i], pointsY[i] - minY + yOffset);
             }
             path.close();
         }
@@ -136,48 +138,47 @@ public class OverlayView extends View {
         Log.d(TAG, "initKeysWithDimensions called with width=" + width + ", height=" + height);
         keys.clear();
 
-        float scale = width / 640f;
         float yOffset = height * 0.4f; // 画面下部に配置
 
         // Row 1
-        addKey("Q", new float[]{0, 28, 84, 58}, new float[]{101, 95, 95, 105}, scale, yOffset);
-        addKey("W", new float[]{58, 84, 143, 121}, new float[]{105, 95, 96, 106}, scale, yOffset);
-        addKey("E", new float[]{121, 143, 201, 187}, new float[]{106, 96, 96, 106}, scale, yOffset);
-        addKey("R", new float[]{187, 201, 258, 253}, new float[]{106, 96, 96, 107}, scale, yOffset);
-        addKey("T", new float[]{253, 258, 317, 317}, new float[]{107, 96, 96, 108}, scale, yOffset);
-        addKey("Y", new float[]{317, 317, 373, 382}, new float[]{108, 96, 98, 108}, scale, yOffset);
-        addKey("U", new float[]{382, 373, 434, 447}, new float[]{108, 98, 99, 110}, scale, yOffset);
-        addKey("I", new float[]{447, 434, 493, 515}, new float[]{110, 99, 99, 111}, scale, yOffset);
-        addKey("O", new float[]{515, 493, 551, 579}, new float[]{111, 99, 101, 111}, scale, yOffset);
-        addKey("P", new float[]{579, 551, 608, 640}, new float[]{111, 101, 101, 111}, scale, yOffset);
+        addKey("Q", new float[]{0, 28, 84, 58}, new float[]{101, 95, 95, 105}, yOffset);
+        addKey("W", new float[]{58, 84, 143, 121}, new float[]{105, 95, 96, 106}, yOffset);
+        addKey("E", new float[]{121, 143, 201, 187}, new float[]{106, 96, 96, 106}, yOffset);
+        addKey("R", new float[]{187, 201, 258, 253}, new float[]{106, 96, 96, 107}, yOffset);
+        addKey("T", new float[]{253, 258, 317, 317}, new float[]{107, 96, 96, 108}, yOffset);
+        addKey("Y", new float[]{317, 317, 373, 382}, new float[]{108, 96, 98, 108}, yOffset);
+        addKey("U", new float[]{382, 373, 434, 447}, new float[]{108, 98, 99, 110}, yOffset);
+        addKey("I", new float[]{447, 434, 493, 515}, new float[]{110, 99, 99, 111}, yOffset);
+        addKey("O", new float[]{515, 493, 551, 579}, new float[]{111, 99, 101, 111}, yOffset);
+        addKey("P", new float[]{579, 551, 608, 640}, new float[]{111, 101, 101, 111}, yOffset);
 
         // Row 2
-        float r2o = 30 * scale;
-        addKey("A", new float[]{45, 70, 120, 101}, new float[]{95, 87, 88, 96}, scale, yOffset + r2o);
-        addKey("S", new float[]{101, 120, 172, 159}, new float[]{96, 88, 88, 96}, scale, yOffset + r2o);
-        addKey("D", new float[]{159, 172, 225, 215}, new float[]{96, 88, 88, 96}, scale, yOffset + r2o);
-        addKey("F", new float[]{215, 225, 277, 272}, new float[]{96, 88, 88, 97}, scale, yOffset + r2o);
-        addKey("G", new float[]{272, 277, 328, 329}, new float[]{97, 88, 89, 97}, scale, yOffset + r2o);
-        addKey("H", new float[]{329, 328, 379, 387}, new float[]{97, 89, 90, 98}, scale, yOffset + r2o);
-        addKey("J", new float[]{387, 379, 432, 445}, new float[]{98, 90, 91, 99}, scale, yOffset + r2o);
-        addKey("K", new float[]{445, 432, 485, 504}, new float[]{99, 91, 91, 100}, scale, yOffset + r2o);
-        addKey("L", new float[]{504, 485, 538, 560}, new float[]{100, 91, 93, 101}, scale, yOffset + r2o);
+        float r2o = 30;
+        addKey("A", new float[]{45, 70, 120, 101}, new float[]{95, 87, 88, 96}, yOffset + r2o);
+        addKey("S", new float[]{101, 120, 172, 159}, new float[]{96, 88, 88, 96}, yOffset + r2o);
+        addKey("D", new float[]{159, 172, 225, 215}, new float[]{96, 88, 88, 96}, yOffset + r2o);
+        addKey("F", new float[]{215, 225, 277, 272}, new float[]{96, 88, 88, 97}, yOffset + r2o);
+        addKey("G", new float[]{272, 277, 328, 329}, new float[]{97, 88, 89, 97}, yOffset + r2o);
+        addKey("H", new float[]{329, 328, 379, 387}, new float[]{97, 89, 90, 98}, yOffset + r2o);
+        addKey("J", new float[]{387, 379, 432, 445}, new float[]{98, 90, 91, 99}, yOffset + r2o);
+        addKey("K", new float[]{445, 432, 485, 504}, new float[]{99, 91, 91, 100}, yOffset + r2o);
+        addKey("L", new float[]{504, 485, 538, 560}, new float[]{100, 91, 93, 101}, yOffset + r2o);
 
         // Row 3
-        float r3o = 60 * scale;
-        addKey("Z", new float[]{93, 112, 158, 145}, new float[]{87, 81, 81, 88}, scale, yOffset + r3o);
-        addKey("X", new float[]{145, 188, 205, 197}, new float[]{88, 81, 82, 89}, scale, yOffset + r3o);
-        addKey("C", new float[]{197, 205, 253, 247}, new float[]{89, 82, 82, 89}, scale, yOffset + r3o);
-        addKey("V", new float[]{247, 253, 299, 299}, new float[]{89, 82, 81, 88}, scale, yOffset + r3o);
-        addKey("B", new float[]{299, 299, 346, 349}, new float[]{88, 81, 83, 90}, scale, yOffset + r3o);
-        addKey("N", new float[]{349, 346, 392, 401}, new float[]{90, 83, 84, 90}, scale, yOffset + r3o);
-        addKey("M", new float[]{401, 392, 441, 452}, new float[]{90, 84, 84, 91}, scale, yOffset + r3o);
-        addKey("←", new float[]{452, 441, 558, 560}, new float[]{91, 84, 86, 93}, scale, yOffset + r3o);
+        float r3o = 60;
+        addKey("Z", new float[]{93, 112, 158, 145}, new float[]{87, 81, 81, 88}, yOffset + r3o);
+        addKey("X", new float[]{145, 188, 205, 197}, new float[]{88, 81, 82, 89}, yOffset + r3o);
+        addKey("C", new float[]{197, 205, 253, 247}, new float[]{89, 82, 82, 89}, yOffset + r3o);
+        addKey("V", new float[]{247, 253, 299, 299}, new float[]{89, 82, 81, 88}, yOffset + r3o);
+        addKey("B", new float[]{299, 299, 346, 349}, new float[]{88, 81, 83, 90}, yOffset + r3o);
+        addKey("N", new float[]{349, 346, 392, 401}, new float[]{90, 83, 84, 90}, yOffset + r3o);
+        addKey("M", new float[]{401, 392, 441, 452}, new float[]{90, 84, 84, 91}, yOffset + r3o);
+        addKey("←", new float[]{452, 441, 558, 560}, new float[]{91, 84, 86, 93}, yOffset + r3o);
     }
 
-    private void addKey(String label, float[] x, float[] y, float scale, float yOffset) {
+    private void addKey(String label, float[] x, float[] y, float yOffset) {
         VirtualKey key = new VirtualKey(label, x, y);
-        key.updatePath(scale, yOffset);
+        key.updatePath(yOffset);
         keys.add(key);
     }
 
@@ -248,8 +249,6 @@ public class OverlayView extends View {
         super.onDraw(canvas);
         Log.d(TAG, "onDraw called: width=" + getWidth() + ", height=" + getHeight() + ", keys.size=" + keys.size());
 
-        // テスト用：半透明の背景を描画して、ビューが存在することを確認
-        canvas.drawColor(Color.argb(100, 255, 0, 0)); // 半透明の赤
 
         if (keys.isEmpty()) {
             Log.d(TAG, "onDraw: keys are empty, calling initKeys()");
