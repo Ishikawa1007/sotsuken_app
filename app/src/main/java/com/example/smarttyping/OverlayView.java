@@ -8,6 +8,7 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Region;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OverlayView extends View {
+    private static final String TAG = "OverlayView";
     private HandLandmarkerResult results;
     private Paint pointPaint = new Paint();
     private Paint textPaint = new Paint();
@@ -109,15 +111,25 @@ public class OverlayView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        initKeys();
+        if (w > 0 && h > 0) {
+            initKeysWithDimensions(w, h);
+        }
     }
 
     private void initKeys() {
-        if (getWidth() == 0 || getHeight() == 0) return;
+        initKeysWithDimensions(getWidth(), getHeight());
+    }
+
+    private void initKeysWithDimensions(int width, int height) {
+        if (width <= 0 || height <= 0) {
+            Log.d(TAG, "initKeysWithDimensions: invalid dimensions - width=" + width + ", height=" + height);
+            return;
+        }
+        Log.d(TAG, "initKeysWithDimensions called with width=" + width + ", height=" + height);
         keys.clear();
 
-        float scale = getWidth() / 640f;
-        float yOffset = getHeight() * 0.4f; // 画面下部に配置
+        float scale = width / 640f;
+        float yOffset = height * 0.4f; // 画面下部に配置
 
         // Row 1
         addKey("Q", new float[]{0, 28, 84, 58}, new float[]{101, 95, 95, 105}, scale, yOffset);
@@ -163,7 +175,9 @@ public class OverlayView extends View {
 
     public void setResults(HandLandmarkerResult results, int imageWidth, int imageHeight) {
         this.results = results;
-        if (keys.isEmpty()) initKeys();
+        if (keys.isEmpty() && getWidth() > 0 && getHeight() > 0) {
+            initKeys();
+        }
 
         for (VirtualKey key : keys) key.isPressed = false;
 
@@ -221,7 +235,14 @@ public class OverlayView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (keys.isEmpty()) initKeys();
+        if (keys.isEmpty()) {
+            Log.d(TAG, "onDraw: keys are empty, calling initKeys()");
+            initKeys();
+        }
+        if (keys.isEmpty()) {
+            Log.w(TAG, "onDraw: keys still empty after initialization!");
+            return;
+        }
 
         for (VirtualKey key : keys) {
             float progress = Math.max(0f, Math.min(currentPressScore / PRESS_RATIO_THRESHOLD, 1.0f));
