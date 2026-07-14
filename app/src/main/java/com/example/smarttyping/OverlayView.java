@@ -248,6 +248,9 @@ public class OverlayView extends View {
         super.onDraw(canvas);
         Log.d(TAG, "onDraw called: width=" + getWidth() + ", height=" + getHeight() + ", keys.size=" + keys.size());
 
+        // テスト用：半透明の背景を描画して、ビューが存在することを確認
+        canvas.drawColor(Color.argb(100, 255, 0, 0)); // 半透明の赤
+
         if (keys.isEmpty()) {
             Log.d(TAG, "onDraw: keys are empty, calling initKeys()");
             initKeys();
