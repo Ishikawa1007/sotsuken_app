@@ -77,7 +77,14 @@ public class OverlayView extends View {
 
     public OverlayView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        Log.d(TAG, "OverlayView constructor called");
         initPaints();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        Log.d(TAG, "onAttachedToWindow: width=" + getWidth() + ", height=" + getHeight());
     }
 
     private void initPaints() {
@@ -111,6 +118,7 @@ public class OverlayView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+        Log.d(TAG, "onSizeChanged: w=" + w + ", h=" + h + ", oldw=" + oldw + ", oldh=" + oldh);
         if (w > 0 && h > 0) {
             initKeysWithDimensions(w, h);
         }
@@ -175,7 +183,10 @@ public class OverlayView extends View {
 
     public void setResults(HandLandmarkerResult results, int imageWidth, int imageHeight) {
         this.results = results;
+        Log.d(TAG, "setResults called: width=" + getWidth() + ", height=" + getHeight() + ", keys.size=" + keys.size());
+
         if (keys.isEmpty() && getWidth() > 0 && getHeight() > 0) {
+            Log.d(TAG, "setResults: Initializing keys");
             initKeys();
         }
 
@@ -235,6 +246,8 @@ public class OverlayView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        Log.d(TAG, "onDraw called: width=" + getWidth() + ", height=" + getHeight() + ", keys.size=" + keys.size());
+
         if (keys.isEmpty()) {
             Log.d(TAG, "onDraw: keys are empty, calling initKeys()");
             initKeys();
